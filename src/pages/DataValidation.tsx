@@ -126,59 +126,102 @@ const US_STATES = [
 ];
 
 const CITIES = [
-  "montgomery",
-  "juneau",
-  "phoenix",
-  "little rock",
-  "sacramento",
-  "denver",
-  "hartford",
-  "dover",
-  "tallahassee",
-  "atlanta",
-  "honolulu",
-  "boise",
-  "springfield",
-  "indianapolis",
-  "des moines",
-  "topeka",
-  "frankfort",
-  "baton rouge",
-  "augusta",
+  "agoura hills",
+  "albany",
   "annapolis",
+  "atlanta",
+  "austin",
+  "baton rouge",
+  "bismarck",
+  "boise",
   "boston",
-  "lansing",
-  "saint paul",
+  "carol stream",
+  "carson city",
+  "charleston",
+  "cheyenne",
+  "city of industry",
+  "cold spring harbor",
+  "columbia",
+  "columbus",
+  "concord",
+  "coral springs",
+  "daytona beach",
+  "denver",
+  "des moines",
+  "dover",
+  "el cajon",
+  "fernandina beach",
+  "fountain inn",
+  "fort lee",
+  "fort lauderdale",
+  "fort mayers",
+  "frankfort",
+  "green bay",
+  "hanover park",
+  "harrisburg",
+  "hartford",
+  "helena",
+  "holly hill",
+  "honolulu",
+  "indian land",
+  "indianapolis",
   "jackson",
   "jefferson city",
-  "helena",
+  "juneau",
+  "kansas city",
+  "lake mary",
+  "lake worth",
+  "lansing",
   "lincoln",
-  "carson city",
-  "concord",
-  "trenton",
-  "santa fe",
-  "albany",
-  "raleigh",
-  "bismarck",
-  "columbus",
-  "oklahoma city",
-  "salem",
-  "harrisburg",
-  "providence",
-  "columbia",
-  "pierre",
-  "nashville",
-  "austin",
-  "salt lake city",
-  "montpelier",
-  "richmond",
-  "olympia",
-  "charleston",
+  "little rock",
+  "los angeles",
   "madison",
-  "cheyenne",
+  "mint hill",
+  "montgomery",
+  "montpelier",
+  "nantong city",
+  "nashville",
+  "new albany",
+  "new port richey",
+  "new york",
+  "oklahoma city",
+  "olympia",
+  "ormond beach",
+  "palm beach",
+  "palm beach gardens",
+  "philadelphia",
+  "phoenix",
+  "pinellas park",
+  "plant city",
+  "pompano beach",
+  "providence",
+  "raleigh",
+  "rancho cordova",
+  "richmond",
+  "sacramento",
+  "saddle brook",
+  "saint louis",
+  "saint paul",
+  "saint petersburg",
+  "salem",
+  "salt lake city",
+  "san antonio",
+  "san diego",
+  "san jose",
+  "san ramon",
+  "santa fe",
+  "sioux falls",
+  "springfield",
+  "tallahassee",
+  "tarpon springs",
+  "topeka",
+  "trenton",
+  "valley stream",
+  "van nuys",
+  "vernon hills",
 ];
 
-interface DataValidationProps {}
+interface DataValidationProps { }
 
 const DataValidation: React.FC<DataValidationProps> = () => {
   const location = useLocation();
@@ -261,7 +304,7 @@ const DataValidation: React.FC<DataValidationProps> = () => {
         parsedData = lines.map((line: string) => line.split(","));
       } else if (
         file.type ===
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
         file.type === "application/vnd.ms-excel"
       ) {
         // Handle Excel files that weren't pre-parsed
@@ -623,11 +666,10 @@ const DataValidation: React.FC<DataValidationProps> = () => {
             <button
               onClick={parseAddresses}
               disabled={isParsing || addressesParsed}
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                isParsing || addressesParsed
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
-              }`}
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${isParsing || addressesParsed
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
             >
               {isParsing ? "Parsing..." : "Parse Addresses"}
             </button>
@@ -636,11 +678,10 @@ const DataValidation: React.FC<DataValidationProps> = () => {
               <button
                 onClick={validateData}
                 disabled={isValidating}
-                className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                  isValidating
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-green-600 text-white hover:bg-green-700"
-                }`}
+                className={`px-6 py-3 rounded-lg font-semibold transition-colors ${isValidating
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-green-600 text-white hover:bg-green-700"
+                  }`}
               >
                 {isValidating ? "Validating..." : "Validate Data"}
               </button>
