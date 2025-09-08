@@ -393,6 +393,7 @@ const DataValidation: React.FC<DataValidationProps> = () => {
 
           // Clean address for parsing (work on a copy)
           let cleanAddress = address.trim().toLowerCase();
+          cleanAddress = cleanAddress.replace(/,/g, " "); // Replace commas with spaces
           cleanAddress = cleanAddress.replace(/\s+/g, " "); // Collapse whitespace
           cleanAddress = cleanAddress.replace(/[.,;!?]+$/, ""); // Remove trailing punctuation
 
