@@ -401,6 +401,8 @@ const DataValidation: React.FC<DataValidationProps> = () => {
 
           // Split into words and work with a mutable array
           let addressWords = cleanAddress.split(" ");
+          // Strip trailing punctuation from each token (e.g., "mi,", "detroit,")
+          addressWords = addressWords.map((w) => w.replace(/[.,;:]+$/, ""));
           console.log(`Row ${rowIndex}: Original address words:`, addressWords);
 
           // Collect per-row parsing issues for diagnostics
