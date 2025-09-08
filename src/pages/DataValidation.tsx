@@ -489,13 +489,15 @@ const DataValidation: React.FC<DataValidationProps> = () => {
             if (addressWords.length < wordCount) continue;
 
             const lastWords = addressWords.slice(-wordCount).join(" ");
+            // Strip trailing punctuation from candidate (e.g., "mi,", "mi.") for robust matching
+            const stateCandidate = lastWords.replace(/[.,;:]+$/, "");
             console.log(
-              `Row ${rowIndex}: Checking for state with ${wordCount} words: "${lastWords}"`
+              `Row ${rowIndex}: Checking for state with ${wordCount} words: "${lastWords}" (candidate: "${stateCandidate}")`
             );
 
             // Check US states and abbreviations
             const stateMatch = US_STATES.find(
-              (s) => s.state === lastWords || s.abbreviation === lastWords
+              (s) => s.state === stateCandidate || s.abbreviation === stateCandidate
             );
 
             if (stateMatch) {
