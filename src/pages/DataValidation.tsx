@@ -219,6 +219,8 @@ const CITIES = [
   "valley stream",
   "van nuys",
   "vernon hills",
+  "warren",
+  "lincoln park",
 ];
 
 interface DataValidationProps { }
