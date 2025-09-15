@@ -219,7 +219,149 @@ const CITIES = [
   "valley stream",
   "van nuys",
   "vernon hills",
+  "warren",
+  "lincoln park",
+  "detroit",
+  "clinton twp",
+  "sterling heights",
+  "eastpointe",
+  "oak",
+  "taylor",
+  "highland park",
+  "bensenville",
+  "louisville",
+  "softgate",
+  "allen park",
+  "kimball",
+  "pontiac",
+  "auburn hills",
+  "fenton",
+  "commerce township",
+  "dearborn",
+  "ann arbor",
+  "madison heights",
+  "oak park",
+  "westland",
+  "garden city",
+  "tempe",
+  "chester",
+  "shelby twp",
+  "southgate",
+  "cneter line",
+  "chicago",
+  "hamtramck",
+  "clair shores",
+  "southfield",
+  "shelbly township",
+  "allen",
+  "fairgrove",
+  "wyandotte",
+  "deforest",
+  "jefferson",
+  "walled lake",
+  "redford",
+  "shelby township",
+  "roseville",
+  "erieriea",
+  "macomb",
+  "winnetka",
+  "fraser",
+  "vassar",
+  "metamora",
+  "wixom",
+  "utica",
+  "new orleans",
+  "troy",
+  "goodrich",
+  "berkley",
+  "township",
+  "rochester hills",
+  "dearborn heights",
+  "ecorse",
+  "hazel park",
+  "canton",
+  "harrison twp",
+  "marine city",
+  "melvindale",
+  "inkster",
+  "royal oak",
+  "shebly twp",
+  "lapeer",
+  "clawson",
+  "farmington hills",
+  "city",
+  "ferndale",
+  "rouge",
+  "clinton township",
+  "arbor",
+  "chandler",
+  "chesterfield",
+  "brownstown",
+  "northville",
+  "wayne",
+  "waterford",
+  "novi",
+  "lyon",
+  "clarkston",
+  "livonia",
+  "toledo",
+  "chattanooga",
+  "grants pass",
+  "la habra",
+  "paso roble",
+  "red bluff",
+  "hot springs",
+  "los osos",
+  "santa clarita",
+  "pacific beach",
+  "central point",
+  "oregon city",
+  "owings mills",
+  "windsor mill",
+  "parkesburg",
+  "saint mary's",
+  "wiloughby hills",
+  "saint davids",
+  "palm springs",
+  "apple valley",
+  "diamond bar",
+  "klamath fall",
+  "zephyr cove",
+  "newport beach",
+  "klamath falls",
+  "green valley",
+  "tahoe city",
+  "corte madera",
+  "castro valley",
+  "mountain house",
+  "pacific grove",
+  "estes park",
+  "harwich port",
+  "redondo beach",
+  "cheviot hills",
+  "manhattan beach",
+  "palm springs",
+  "santa paula",
+  "la crescenta",
+  "yucca valley",
+  "yorba linda",
+  "santa clarita",
+  "red bluff",
+  "angels camp",
+  "san bernadino",
+  "costa mesa",
+  "granada hills",
+  "west hills",
+  "eagle rocks",
+  "cathedral city",
+  "woodland hills",
+  "nichols hill",
+  "washington dc",
+  "gross pointe",
+  "ann arbor",
 ];
+
+const CITY_SET = new Set(CITIES);
 
 interface DataValidationProps { }
 
@@ -393,12 +535,18 @@ const DataValidation: React.FC<DataValidationProps> = () => {
 
           // Clean address for parsing (work on a copy)
           let cleanAddress = address.trim().toLowerCase();
+          cleanAddress = cleanAddress.replace(/,/g, " "); // Replace commas with spaces
           cleanAddress = cleanAddress.replace(/\s+/g, " "); // Collapse whitespace
           cleanAddress = cleanAddress.replace(/[.,;!?]+$/, ""); // Remove trailing punctuation
 
           // Split into words and work with a mutable array
           let addressWords = cleanAddress.split(" ");
+          // Strip trailing punctuation from each token (e.g., "mi,", "detroit,")
+          addressWords = addressWords.map((w) => w.replace(/[.,;:]+$/, ""));
           console.log(`Row ${rowIndex}: Original address words:`, addressWords);
+
+          // Collect per-row parsing issues for diagnostics
+          const issues: string[] = [];
 
           // Parse Country (right to left, check 4, 3, 2, 1 words)
           let country = "";
@@ -432,10 +580,13 @@ const DataValidation: React.FC<DataValidationProps> = () => {
           if (country) {
             row[countryColIndex] = country;
             console.log(`Row ${rowIndex}: Country set to: "${country}"`);
+          } else {
+            issues.push("no country in address text");
           }
 
           // Parse Zip Code (check for 5-digit, 5+4, or 5+5 digit formats)
           let zip = "";
+          let zipFound = false;
           if (addressWords.length > 0) {
             const lastWord = addressWords[addressWords.length - 1];
             console.log(
@@ -449,38 +600,46 @@ const DataValidation: React.FC<DataValidationProps> = () => {
                 zip = lastWord;
                 addressWords.splice(-1);
                 console.log(`Row ${rowIndex}: Found 5+4 zip: "${zip}"`);
+                zipFound = true;
               } else if (/^\d{5}-\d{5}$/.test(lastWord)) {
                 // 5+5 format (like 12345-67890)
                 zip = lastWord;
                 addressWords.splice(-1);
                 console.log(`Row ${rowIndex}: Found 5+5 zip: "${zip}"`);
+                zipFound = true;
               }
             } else if (lastWord.length === 5 && /^\d{5}$/.test(lastWord)) {
               // Standard 5-digit zip
               zip = lastWord;
               addressWords.splice(-1);
               console.log(`Row ${rowIndex}: Found 5-digit zip: "${zip}"`);
+              zipFound = true;
             }
           }
 
           if (zip) {
             row[zipColIndex] = zip;
             console.log(`Row ${rowIndex}: Zip set to: "${zip}"`);
+          } else {
+            issues.push("zip not found");
           }
 
           // Parse State (check last 2, 1 words)
           let state = "";
+          let stateFound = false;
           for (let wordCount = 2; wordCount >= 1; wordCount--) {
             if (addressWords.length < wordCount) continue;
 
             const lastWords = addressWords.slice(-wordCount).join(" ");
+            // Strip trailing punctuation from candidate (e.g., "mi,", "mi.") for robust matching
+            const stateCandidate = lastWords.replace(/[.,;:]+$/, "");
             console.log(
-              `Row ${rowIndex}: Checking for state with ${wordCount} words: "${lastWords}"`
+              `Row ${rowIndex}: Checking for state with ${wordCount} words: "${lastWords}" (candidate: "${stateCandidate}")`
             );
 
             // Check US states and abbreviations
             const stateMatch = US_STATES.find(
-              (s) => s.state === lastWords || s.abbreviation === lastWords
+              (s) => s.state === stateCandidate || s.abbreviation === stateCandidate
             );
 
             if (stateMatch) {
@@ -489,6 +648,7 @@ const DataValidation: React.FC<DataValidationProps> = () => {
                 `Row ${rowIndex}: Found state: "${state}" (${stateMatch.state})`
               );
               addressWords.splice(-wordCount);
+              stateFound = true;
               break;
             }
           }
@@ -496,10 +656,13 @@ const DataValidation: React.FC<DataValidationProps> = () => {
           if (state) {
             row[stateColIndex] = state;
             console.log(`Row ${rowIndex}: State set to: "${state}"`);
+          } else {
+            issues.push("state not found");
           }
 
           // Parse City (check last 3, 2, 1 words)
           let city = "";
+          let cityFromDictionary = false;
           for (let wordCount = 3; wordCount >= 1; wordCount--) {
             if (addressWords.length < wordCount) continue;
 
@@ -512,6 +675,7 @@ const DataValidation: React.FC<DataValidationProps> = () => {
               city = lastWords;
               console.log(`Row ${rowIndex}: Found city: "${city}"`);
               addressWords.splice(-wordCount);
+              cityFromDictionary = true;
               break;
             }
           }
@@ -521,11 +685,14 @@ const DataValidation: React.FC<DataValidationProps> = () => {
             city = addressWords[addressWords.length - 1];
             addressWords.splice(-1);
             console.log(`Row ${rowIndex}: Using last word as city: "${city}"`);
+            issues.push("city not in dictionary, fallback used");
           }
 
           if (city) {
             row[cityColIndex] = city;
             console.log(`Row ${rowIndex}: City set to: "${city}"`);
+          } else {
+            issues.push("city not found");
           }
 
           // Update address column with remaining street address
@@ -538,6 +705,12 @@ const DataValidation: React.FC<DataValidationProps> = () => {
             `Row ${rowIndex}: Final address words remaining:`,
             addressWords
           );
+
+          if (issues.length > 0) {
+            console.log(`Row ${rowIndex}: Issues -> ${issues.join("; ")}`);
+          } else {
+            console.log(`Row ${rowIndex}: Parsed with no issues.`);
+          }
 
           newData[rowIndex] = row;
         } catch (err) {
