@@ -1,0 +1,7 @@
+# Nixpacks configuration for Railway
+# Railway will auto-detect Python from requirements.txt
+
+# Note: If postal library fails, we may need to handle it differently
+# The postal library requires libpostal which might not be available on Railway
+
+
