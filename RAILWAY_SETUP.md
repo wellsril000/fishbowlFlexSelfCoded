@@ -15,11 +15,13 @@ Railway needs to know that your backend code is in the `backend/` folder. Here's
 In the Settings page, look for one of these options:
 
 **Option A: Under "Source" Section**
+
 - Scroll down to find **"Source"** section
 - Look for **"Root Directory"** or **"Source Directory"**
 - Set it to: `backend`
 
 **Option B: Under "Build & Deploy" Section**
+
 - Look for **"Build & Deploy"** section
 - Find **"Root Directory"** or **"Working Directory"**
 - Set it to: `backend`
@@ -33,6 +35,7 @@ In the Settings page, look for one of these options:
 ### Step 3: Set Start Command (if not already set)
 
 In **Settings** → **Deploy** section:
+
 - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 
 ### Alternative: Delete and Recreate Service
@@ -40,9 +43,11 @@ In **Settings** → **Deploy** section:
 If you can't find Root Directory setting:
 
 1. **Delete the current service:**
+
    - Go to service → Settings → Scroll down → **"Delete Service"**
 
 2. **Create a new service:**
+
    - In your Railway project, click **"New"** → **"GitHub Repo"**
    - Select your repository
    - Railway should ask for configuration - look for **"Root Directory"** during setup
@@ -56,6 +61,7 @@ If you can't find Root Directory setting:
 ### What to Look For in Settings Tab
 
 When you're in the Settings tab, you should see sections like:
+
 - Source / Repository
 - Build & Deploy
 - Variables
@@ -70,4 +76,3 @@ The **Root Directory** should be in **"Source"** or **"Build & Deploy"** section
 2. Or check Railway's documentation: https://docs.railway.com/develop/railway-toml
 
 The key is: **Railway needs `backend/` as the root so it can find `requirements.txt` and auto-detect Python.**
-
