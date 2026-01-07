@@ -1,15 +1,18 @@
 # Nixpacks configuration for Railway
-# The postal library requires libpostal system dependencies
+# The postal library requires libpostal C library
 
 [providers]
 python = "3.11"
 
 [phases.setup]
-nixPkgs = ["python311", "pip", "libpostal", "pkg-config", "autoconf", "automake", "libtool", "curl", "make", "g++"]
+nixPkgs = ["python311", "pip", "pkg-config", "autoconf", "automake", "libtool", "curl", "make", "g++", "gcc", "gettext"]
 
 [phases.install]
 cmds = [
   "pip install --upgrade pip",
+  # Install libpostal from source (required for postal Python library)
+  "git clone https://github.com/openvenues/libpostal.git /tmp/libpostal",
+  "cd /tmp/libpostal && ./bootstrap.sh && ./configure --datadir=/usr/share/libpostal && make -j4 && make install && ldconfig",
   "pip install -r requirements.txt"
 ]
 
