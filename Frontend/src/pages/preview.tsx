@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-// Import xlsx for Excel file support
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 // Import papaparse for robust CSV parsing
 import Papa from "papaparse";
 
@@ -12,7 +11,6 @@ const Preview: React.FC = () => {
   const navigate = useNavigate();
   const file = location.state?.file;
   const selectedSheet = location.state?.selectedSheet;
-  const workbook = location.state?.workbook;
 
   // State for our data and pagination
   const [data, setData] = useState<string[][]>([]);
@@ -71,13 +69,13 @@ const Preview: React.FC = () => {
         setTotalRows(csvData.length);
       } else if (file.name.toLowerCase().match(/\.(xlsx|xls|xlsm)$/)) {
         // Handle Excel files - sheet should already be selected
-        if (!selectedSheet || !workbook) {
+        if (!selectedSheet) {
           throw new Error(
             "Excel file data is incomplete. Please try uploading again."
           );
         }
 
-        parseExcelSheet(workbook, selectedSheet);
+        await parseExcelSheet(file, selectedSheet);
       } else {
         setError(
           "Unsupported file type. Please use CSV or Excel files (.csv, .xlsx, .xls, .xlsm)"
@@ -100,44 +98,69 @@ const Preview: React.FC = () => {
   };
 
   // Function to parse a specific Excel sheet
-  const parseExcelSheet = (workbook: XLSX.WorkBook, sheetName: string) => {
+  const parseExcelSheet = async (file: File, sheetName: string) => {
     try {
-      const worksheet = workbook.Sheets[sheetName];
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(arrayBuffer);
+
+      const worksheet = workbook.getWorksheet(sheetName);
       if (!worksheet) {
         throw new Error(`Sheet "${sheetName}" not found`);
       }
 
-      // Get the range of cells that contain data
-      const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
-
-      if (range.e.r === 0 && range.e.c === 0) {
-        throw new Error(`Sheet "${sheetName}" is empty`);
-      }
-
-      // Find the maximum number of columns used
-      const maxCols = range.e.c + 1;
-
       // Parse headers (first row)
       const headers: string[] = [];
-      for (let col = 0; col < maxCols; col++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-        const cell = worksheet[cellAddress];
-        const headerValue = cell ? String(cell.v).trim() : `Column ${col + 1}`;
-        headers.push(headerValue);
-      }
+      const headerRow = worksheet.getRow(1);
+      headerRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        let headerValue = "";
+        if (cell.value !== null && cell.value !== undefined) {
+          if (typeof cell.value === "object" && "text" in cell.value) {
+            headerValue = cell.value.text;
+          } else if (
+            typeof cell.value === "object" &&
+            "richText" in cell.value
+          ) {
+            headerValue = cell.value.richText
+              .map((rt: any) => rt.text)
+              .join("");
+          } else {
+            headerValue = String(cell.value);
+          }
+        }
+        headers.push(headerValue.trim() || `Column ${colNumber}`);
+      });
       setHeaders(headers);
 
       // Parse data rows
       const excelData: string[][] = [];
-      for (let row = 1; row <= range.e.r; row++) {
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return; // Skip header row
+
         const dataRow: string[] = [];
-        for (let col = 0; col < maxCols; col++) {
-          const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-          const cell = worksheet[cellAddress];
-          const cellValue = cell ? String(cell.v).trim() : "";
-          dataRow.push(cellValue);
-        }
+        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+          let cellValue = "";
+          if (cell.value !== null && cell.value !== undefined) {
+            if (typeof cell.value === "object" && "text" in cell.value) {
+              cellValue = cell.value.text;
+            } else if (
+              typeof cell.value === "object" &&
+              "richText" in cell.value
+            ) {
+              cellValue = cell.value.richText
+                .map((rt: any) => rt.text)
+                .join("");
+            } else {
+              cellValue = String(cell.value);
+            }
+          }
+          dataRow.push(cellValue.trim());
+        });
         excelData.push(dataRow);
+      });
+
+      if (excelData.length === 0) {
+        throw new Error(`Sheet "${sheetName}" is empty`);
       }
 
       setData(excelData);
@@ -208,7 +231,7 @@ const Preview: React.FC = () => {
                   file: file,
                   importType: location.state?.importType,
                   selectedSheet: location.state?.selectedSheet,
-                  workbook: location.state?.workbook,
+                  projectId: location.state?.projectId,
                   data: data,
                   headers: headers,
                 },

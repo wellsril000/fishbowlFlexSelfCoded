@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-// Import xlsx for Excel file support
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 const SheetSelection: React.FC = () => {
   // Get the file data from navigation state
   const location = useLocation();
   const navigate = useNavigate();
   const file = location.state?.file;
+  const importType = location.state?.importType;
+  const projectId = location.state?.projectId;
 
   // State for Excel sheet management
   const [availableSheets, setAvailableSheets] = useState<string[]>([]);
@@ -30,11 +31,12 @@ const SheetSelection: React.FC = () => {
       // Read the file as binary data
       const arrayBuffer = await file.arrayBuffer();
 
-      // Parse the Excel workbook
-      const workbook = XLSX.read(arrayBuffer, { type: "array" });
+      // Parse the Excel workbook using exceljs
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(arrayBuffer);
 
       // Get all sheet names
-      const sheetNames = workbook.SheetNames;
+      const sheetNames = workbook.worksheets.map((sheet) => sheet.name);
 
       if (sheetNames.length === 0) {
         throw new Error("No sheets found in Excel file");
@@ -46,7 +48,8 @@ const SheetSelection: React.FC = () => {
           state: {
             file: file,
             selectedSheet: sheetNames[0],
-            workbook: workbook,
+            importType: importType,
+            projectId: projectId,
           },
         });
         return;
@@ -78,16 +81,14 @@ const SheetSelection: React.FC = () => {
     }
 
     try {
-      // Re-read the file to get the workbook data
-      const arrayBuffer = await file.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: "array" });
-
-      // Navigate to preview with file, selected sheet, and workbook data
+      // Navigate to preview with file and selected sheet
+      // The preview page will read the file itself
       navigate("/preview", {
         state: {
           file: file,
           selectedSheet: selectedSheet,
-          workbook: workbook,
+          importType: importType,
+          projectId: projectId,
         },
       });
     } catch (err) {
@@ -179,13 +180,15 @@ const SheetSelection: React.FC = () => {
                 <button
                   key={sheetName}
                   onClick={() => handleSheetSelect(sheetName)}
-                  className={`p-6 rounded-lg border-2 transition-all ${
+                  className={`p-6 rounded-lg border-2 transition-all text-left ${
                     selectedSheet === sheetName
                       ? "border-blue-500 bg-blue-50 text-blue-700 shadow-md"
                       : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                   }`}
                 >
-                  <div className="text-lg font-medium">{sheetName}</div>
+                  <div className="text-lg font-medium break-words whitespace-normal">
+                    {sheetName}
+                  </div>
                 </button>
               ))}
             </div>

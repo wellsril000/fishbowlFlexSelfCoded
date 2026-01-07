@@ -7,8 +7,7 @@ const ImportType: React.FC = () => {
 
   const handleImportTypeSelect = (importType: string) => {
     console.log(`Selected import type: ${importType}`);
-    // TODO: Navigate to the appropriate import configuration page
-    // For now, just log the selection
+    navigate("/upload", { state: { importType } });
   };
 
   return (

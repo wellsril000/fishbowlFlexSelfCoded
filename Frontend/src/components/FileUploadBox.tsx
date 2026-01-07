@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 // This is our FileUploadBox component
-const FileUploadBox: React.FC<{ importType: string }> = ({ importType }) => {
+const FileUploadBox: React.FC<{ importType: string; projectId?: string }> = ({
+  importType,
+  projectId,
+}) => {
   // This is STATE - it remembers which file the user selected
   // useState creates a variable and a function to change it
   // selectedFile starts as null (no file selected)
@@ -40,12 +43,20 @@ const FileUploadBox: React.FC<{ importType: string }> = ({ importType }) => {
           if (file.name.toLowerCase().endsWith(".csv")) {
             // CSV files go directly to preview
             navigate("/preview", {
-              state: { file: file, importType: importType },
+              state: {
+                file: file,
+                importType: importType,
+                projectId: projectId,
+              },
             });
           } else {
             // Excel files go to sheet selection first
             navigate("/sheet-selection", {
-              state: { file: file, importType: importType },
+              state: {
+                file: file,
+                importType: importType,
+                projectId: projectId,
+              },
             });
           }
         }, 500);
@@ -65,12 +76,17 @@ const FileUploadBox: React.FC<{ importType: string }> = ({ importType }) => {
     setSelectedFile(null);
   };
 
+  // Friendly display label for the import type
+  const displayImportType =
+    importType.toLowerCase() === "ppvp"
+      ? "PPVP"
+      : importType.charAt(0).toUpperCase() + importType.slice(1);
+
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
       {/* This is the title of our upload box */}
       <h3 className="text-lg font-semibold text-gray-800 mb-4">
-        Select a {importType.charAt(0).toUpperCase() + importType.slice(1)} File
-        to Upload
+        Select a {displayImportType} File to Upload
       </h3>
 
       {/* This is the file input - it's hidden but connected to our button */}

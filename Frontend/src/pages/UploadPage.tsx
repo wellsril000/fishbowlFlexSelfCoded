@@ -7,6 +7,7 @@ const UploadPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const importType = location.state?.importType;
+  const projectId = location.state?.projectId;
 
   // If no import type is selected, redirect to home
   if (!importType) {
@@ -82,6 +83,27 @@ const UploadPage: React.FC = () => {
             </svg>
           ),
         };
+      case "ppvp":
+        return {
+          title: "PPVP Import",
+          description: "Upload PPVP data file for processing.",
+          color: "orange",
+          icon: (
+            <svg
+              className="w-8 h-8 text-orange-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6v12m6-6H6"
+              />
+            </svg>
+          ),
+        };
       default:
         return {
           title: "Import",
@@ -139,7 +161,7 @@ const UploadPage: React.FC = () => {
 
           {/* Enhanced FileUploadBox */}
           <div className="max-w-2xl mx-auto">
-            <FileUploadBox importType={importType} />
+            <FileUploadBox importType={importType} projectId={projectId} />
           </div>
         </div>
       </div>

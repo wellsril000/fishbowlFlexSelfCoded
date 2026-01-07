@@ -1,12 +1,18 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { UserButton, useAuth } from "@clerk/clerk-react";
 import logo from "../assets/fishbowl-logo.jpg";
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
+  const { isSignedIn } = useAuth();
 
   const handleLogoClick = () => {
-    navigate("/");
+    if (isSignedIn) {
+      navigate("/");
+    } else {
+      navigate("/sign-in");
+    }
   };
 
   return (
@@ -19,6 +25,13 @@ const Navbar: React.FC = () => {
         <img src={logo} alt="Fishbowl Flex Logo" className="h-8 w-8" />
         <h1 className="text-xl font-bold text-blue-600">Fishbowl Flex</h1>
       </button>
+
+      {/* Right Side User Button (only show when signed in) */}
+      {isSignedIn && (
+        <div className="mr-6">
+          <UserButton afterSignOutUrl="/sign-in" />
+        </div>
+      )}
     </header>
   );
 };
