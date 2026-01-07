@@ -1,8 +1,7 @@
 # Nixpacks configuration for Railway
 # The postal library requires libpostal C library
 
-[providers]
-python = "3.11"
+providers = ["python"]
 
 [phases.setup]
 nixPkgs = ["python311", "pip", "pkg-config", "autoconf", "automake", "libtool", "curl", "make", "g++", "gcc", "gettext"]
