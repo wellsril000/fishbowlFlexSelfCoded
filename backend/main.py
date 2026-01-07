@@ -13,18 +13,40 @@ from projects import router as projects_router
 from file_imports import router as file_imports_router
 import traceback
 
-# Load US cities database
-cities_df = pd.read_csv('uscities.csv')
+# Lazy load US cities database (only when needed)
+_cities_df = None
+_cities_by_state = None
+_state_name_to_code = None
+_state_code_to_name = None
 
-# Group cities by state for fast lookup
-cities_by_state = cities_df.groupby('state_id')['city'].apply(list).to_dict()
+def _load_cities_data():
+    """Load cities data on first access"""
+    global _cities_df, _cities_by_state, _state_name_to_code, _state_code_to_name
+    if _cities_df is None:
+        import os
+        from pathlib import Path
+        csv_path = Path(__file__).parent / 'uscities.csv'
+        _cities_df = pd.read_csv(csv_path)
+        _cities_by_state = _cities_df.groupby('state_id')['city'].apply(list).to_dict()
+        _state_name_to_code = _cities_df.set_index('state_name')['state_id'].to_dict()
+        _state_code_to_name = _cities_df.set_index('state_id')['state_name'].to_dict()
+    return _cities_df, _cities_by_state, _state_name_to_code, _state_code_to_name
 
-# Create a mapping of state names to state codes for libpostal compatibility
-state_name_to_code = cities_df.set_index('state_name')['state_id'].to_dict()
+def get_cities_by_state():
+    _, cities_by_state, _, _ = _load_cities_data()
+    return cities_by_state
 
+def get_state_name_to_code():
+    _, _, state_name_to_code, _ = _load_cities_data()
+    return state_name_to_code
 
-# Also create reverse mapping for fallback
-state_code_to_name = cities_df.set_index('state_id')['state_name'].to_dict()
+def get_state_code_to_name():
+    _, _, _, state_code_to_name = _load_cities_data()
+    return state_code_to_name
+
+def get_all_cities():
+    cities_df, _, _, _ = _load_cities_data()
+    return cities_df['city'].tolist()
 
 
 app = FastAPI(title="Fishbowl Flex API")
@@ -59,9 +81,6 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(projects_router)
 # Include file import routes
 app.include_router(file_imports_router)
-
-# Get all cities for fallback matching
-ALL_CITIES = cities_df['city'].tolist()
 
 # --- Helper functions ---
 def clean_address_text(text: str) -> str:
@@ -183,6 +202,8 @@ def correct_city_name(city, state=None):
     state_code = None
     if state:
         state_upper = state.upper()
+        cities_by_state = get_cities_by_state()
+        state_name_to_code = get_state_name_to_code()
         # Check if it's already a state code
         if state_upper in cities_by_state:
             state_code = state_upper
@@ -199,6 +220,7 @@ def correct_city_name(city, state=None):
         # Add more common mappings as needed
     
     # If we have a valid state, search only within that state
+    cities_by_state = get_cities_by_state()
     if state_code and state_code in cities_by_state:
         state_cities = cities_by_state[state_code]
         match = process.extractOne(city, state_cities, scorer=fuzz.partial_ratio)
@@ -206,7 +228,8 @@ def correct_city_name(city, state=None):
             return match[0], match[1]
     
     # Fallback: search all cities if no state or no good match found
-    match = process.extractOne(city, ALL_CITIES, scorer=fuzz.partial_ratio)
+    all_cities = get_all_cities()
+    match = process.extractOne(city, all_cities, scorer=fuzz.partial_ratio)
     if match and match[1] > 50:  # Lower threshold for fallback
         return match[0], match[1]
     
