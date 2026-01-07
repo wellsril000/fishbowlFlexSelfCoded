@@ -1,7 +1,19 @@
 # Nixpacks configuration for Railway
-# Railway will auto-detect Python from requirements.txt
+# The postal library requires libpostal system dependencies
 
-# Note: If postal library fails, we may need to handle it differently
-# The postal library requires libpostal which might not be available on Railway
+[providers]
+python = "3.11"
+
+[phases.setup]
+nixPkgs = ["python311", "pip", "libpostal", "pkg-config", "autoconf", "automake", "libtool", "curl", "make", "g++"]
+
+[phases.install]
+cmds = [
+  "pip install --upgrade pip",
+  "pip install -r requirements.txt"
+]
+
+[start]
+cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"
 
 
