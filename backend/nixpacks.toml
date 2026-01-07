@@ -4,7 +4,7 @@
 providers = ["python"]
 
 [phases.setup]
-nixPkgs = ["python311", "pkgconfig", "autoconf", "automake", "libtool", "curl", "make", "gcc", "gettext", "git"]
+nixPkgs = ["python311", "pkg-config", "autoconf", "automake", "libtool", "curl", "make", "gcc", "gettext", "git"]
 
 [phases.install]
 cmds = [
